@@ -15,13 +15,11 @@ namespace RUTX11_SSH_ConsoleApp
     public class App
     {
         private IUserLog _userLog;
-        private IConsoleIO _console;
         private IRouter _router;
 
-        public App(IUserLog userLog, IConsoleIO console, IRouter router)
+        public App(IUserLog userLog, IRouter router)
         {
             _userLog = userLog;
-            _console = console;
             _router = router;
         }
 
@@ -31,7 +29,7 @@ namespace RUTX11_SSH_ConsoleApp
         public void Run()
         {
             _currentUser = GetAuthenticatedUser();
-            var config = _userLog.GetConfiguration(_currentUser);
+            var config = Configuration.GetConfiguration(_currentUser);
             do
             {
                 _currentAttempt = _userLog.SaveAttempt(_currentUser);
@@ -40,7 +38,7 @@ namespace RUTX11_SSH_ConsoleApp
             } while (true);
         }
 
-        public User GetAuthenticatedUser()
+        public User GetAuthenticatedUser() 
         {
             Console.WriteLine("1. Create New User");
             Console.WriteLine("2. Choose Existing User");
@@ -57,12 +55,7 @@ namespace RUTX11_SSH_ConsoleApp
             {
                 CreateUser();
             }
-            var userList = _userLog.GetAllUsers();
-            Console.WriteLine("List of Users:");
-            foreach (var item in userList)
-            {
-                Console.WriteLine($"{item.Id}. {item.Name}");
-            }
+            var userList = PrintAndReturnUserList();
             var userSelection = Console.ReadLine();
             var userId = 0;
             while (!int.TryParse(userSelection, out userId))
@@ -75,12 +68,13 @@ namespace RUTX11_SSH_ConsoleApp
                 userSelection = Console.ReadLine();
             }
             var user = GetUser(userList, userId);
-            user = AuthenticateUser(user, userId);
+            user = AuthenticateUser(user);
             return user;
         }
 
-        public User AuthenticateUser(User user, int userId)
+        public User AuthenticateUser(User user)
         {
+            var userId = 0;
             if (!_router.CanConnectToRouter(user))
             {
                 var attempt = _userLog.SaveAttempt(user);
@@ -88,12 +82,7 @@ namespace RUTX11_SSH_ConsoleApp
                 do
                 {
                     Console.WriteLine("Could not connect to the router. Are you sure you entered correct user details?");
-                    var userList = _userLog.GetAllUsers();
-                    Console.WriteLine("List of Users:");
-                    foreach (var item in userList)
-                    {
-                        Console.WriteLine($"{item.Id}. {item.Name}");
-                    }
+                    var userList = PrintAndReturnUserList();
                     var newUserId = Console.ReadLine();
                     while (!int.TryParse(newUserId, out userId))
                     {
@@ -108,6 +97,17 @@ namespace RUTX11_SSH_ConsoleApp
             }
             Console.WriteLine("Router Connection Established");
             return user;
+        }
+
+        public IEnumerable<User> PrintAndReturnUserList()
+        {
+            var userList = _userLog.GetAllUsers();
+            Console.WriteLine("List of Users:");
+            foreach (var item in userList)
+            {
+                Console.WriteLine($"{item.Id}. {item.Name}");
+            }
+            return userList;
         }
 
         public void ExecuteTask(int task, IConfiguration config, User user, Attempt attempt)

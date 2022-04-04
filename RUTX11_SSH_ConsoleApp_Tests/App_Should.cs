@@ -17,7 +17,7 @@ namespace RUTX11_SSH_ConsoleApp_Tests
 
         public App_Should()
         {
-            _sut = new App(_userLogMock.Object, _consoleMock.Object, _routerMock.Object);
+            _sut = new App(_userLogMock.Object, _routerMock.Object);
         }
 
         [Theory]
@@ -29,7 +29,7 @@ namespace RUTX11_SSH_ConsoleApp_Tests
             _routerMock.Setup(x => x.CanConnectToRouter(user)).Returns(true);
             
 
-            _sut.AuthenticateUser(user, userId);
+            _sut.AuthenticateUser(user);
             _userLogMock.Verify(x => x.LogAuthenticationError(attempt), Times.Never);
         }
 
@@ -41,7 +41,7 @@ namespace RUTX11_SSH_ConsoleApp_Tests
             var userId = user.Id;
             _routerMock.Setup(x => x.CanConnectToRouter(user)).Returns(true);
 
-            var user1 = _sut.AuthenticateUser(user, userId);
+            var user1 = _sut.AuthenticateUser(user);
 
             var expectedUser = user;
 

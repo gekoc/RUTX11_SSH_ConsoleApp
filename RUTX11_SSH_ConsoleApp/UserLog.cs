@@ -11,7 +11,6 @@ namespace RUTX11_SSH_ConsoleApp
         public void LogAuthenticationError(Attempt attempt);
         public void LogSmsError(Attempt attempt);
         public void LogSignalLostError(int retry, Attempt attempt);
-        public IConfiguration GetConfiguration(User user);
         public IEnumerable<User> GetAllUsers();
         public Attempt SaveAttempt(User user);
         public IEnumerable<Attempt> GetUserAttempts(User user);
@@ -58,10 +57,6 @@ namespace RUTX11_SSH_ConsoleApp
                 attempt.Errors.Add(error);
                 db.SaveChanges();
             }
-        }
-        public IConfiguration GetConfiguration(User user)
-        {
-            return new Configuration(user.Ip, user.Port, user.Name, user.Password);
         }
 
         public IEnumerable<User> GetAllUsers()

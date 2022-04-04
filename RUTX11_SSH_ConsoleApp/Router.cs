@@ -21,13 +21,11 @@ namespace RUTX11_SSH_ConsoleApp
     {
 
         private IUserLog _userLog;
-        private IConsoleIO _console;
 
-        public Router(IUserLog userLog, IConsoleIO console)
+        public Router(IUserLog userLog)
 
         {
             _userLog = userLog;
-            _console = console;
         }
 
         public ConnectionInfo GetConnectionInfo(IConfiguration configuration)
@@ -38,7 +36,7 @@ namespace RUTX11_SSH_ConsoleApp
         public bool CanConnectToRouter(User user)
         {
 
-            var connNfo = GetConnectionInfo(_userLog.GetConfiguration(user));
+            var connNfo = GetConnectionInfo(Configuration.GetConfiguration(user));
             using (var sshclient = new SshClient(connNfo))
             {
                 try
@@ -76,14 +74,15 @@ namespace RUTX11_SSH_ConsoleApp
 
         public void GetSignalStrength(IConfiguration config, User user, Attempt attempt)
         {
-            var result = "";
             var retry = 0;
+            var result = "";
+
             while (!Console.KeyAvailable || Console.ReadKey(true).Key != ConsoleKey.Escape)
             {
                 Console.Clear();
                 result = ExecuteCommand(config, "gsmctl -q");
                 Console.WriteLine(result);
-                System.Threading.Thread.Sleep(500);
+                Thread.Sleep(500);
                 if (result == "N/A\n")
                 {
                     retry++;
@@ -107,7 +106,7 @@ namespace RUTX11_SSH_ConsoleApp
             Console.Clear();
             Console.WriteLine("Connected Devices Are:");
             var result = ExecuteCommand(config, "cat /tmp/dhcp.leases");
-            string[] lines = result.Split(new string[] { "\n" }, StringSplitOptions.None);
+            var lines = result.Split(new string[] { "\n" }, StringSplitOptions.None);
             for (int i = 0; i < lines.Length - 1; i++)
             {
                 var index = lines[i].IndexOf("192.168.10.");
@@ -132,7 +131,8 @@ namespace RUTX11_SSH_ConsoleApp
             }
             else
             {
-                Console.WriteLine("Something happened while trying to send the message");
+                Console.WriteLine("An error occurred while trying to send the message.");
+                Console.WriteLine("Make sure SIM card is inserted and number is correct");
                 _userLog.LogSmsError(attempt);
             }
         }

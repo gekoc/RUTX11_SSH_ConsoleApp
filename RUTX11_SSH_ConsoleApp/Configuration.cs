@@ -28,5 +28,10 @@ namespace RUTX11_SSH_ConsoleApp
             UserName = userName;
             Password = password;
         }
+
+        public static IConfiguration GetConfiguration(User user)
+        {
+            return new Configuration(user.Ip, user.Port, user.Name, user.Password);
+        }
     }
 }
